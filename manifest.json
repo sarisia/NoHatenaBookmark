@@ -1,0 +1,20 @@
+{
+    "manifest_version": 2,
+    "name": "No Hatena Bookmark",
+    "version": "1.0",
+    "description": "Skip Hatena Bookmark, get the destination directly.",
+    "icons": {
+
+    },
+    "homepage_url": "https://github.com/sarisia/NoHatenaBookmark",
+
+    "permissions": [
+        "webRequest",
+        "webRequestBlocking",
+        "*://b.hatena.ne.jp/entry*"
+    ],
+    "background": {
+        "scripts": [ "background.js" ],
+        "persistent": true
+    }
+}
