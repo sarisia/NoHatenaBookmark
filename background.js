@@ -1,9 +1,17 @@
 console.log("background loaded")
 
+let enabled = true
+let disableNext = false
+let ctxMenu = null
+
+// fired when user try to access hatena bookmark page
+// check url and redirect if necessary.
 chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
+        if (!tick()) return
+
         const target = extractTargetFromHatena(details.url)
-        console.log(`${details.url} -> ${target}`)
+        console.log(`${details.url}\n-> ${target}`)
         if (target) {
             return {
                 "redirectUrl": target
@@ -15,6 +23,55 @@ chrome.webRequest.onBeforeRequest.addListener(
     },
     [ "blocking" ]
 )
+
+// fired when extension icon is clicked
+// toggle disableNext
+chrome.browserAction.onClicked.addListener(
+    () => toggleDisableNext()
+)
+
+// register context menu
+updateContextMenu()
+
+function isEnabled() {
+    return !disableNext && enabled
+}
+
+function tick() {
+    const ret = isEnabled()
+    toggleDisableNext(false)
+    return ret
+}
+
+function toggleEnabled() {
+    enabled = !enabled
+    updateIcon()
+    updateContextMenu()
+}
+
+function toggleDisableNext(forceValue) {
+    disableNext = (forceValue !== undefined) ? forceValue : !disableNext
+    updateIcon()
+}
+
+function updateIcon() {
+    console.log(`${isEnabled() ? "enabled" : "disabled"} (disableNext: ${disableNext}, globalEnabled: ${enabled})`)
+    
+}
+
+function updateContextMenu() {
+    const ctxMenuOpts = {
+        title: enabled ? "Disable until browser restart" : "Enable",
+        contexts: [ "browser_action" ],
+        onclick: toggleEnabled
+    }
+
+    if (!ctxMenu) {
+        ctxMenu = chrome.contextMenus.create(ctxMenuOpts)
+    } else {
+        chrome.contextMenus.update(ctxMenu, ctxMenuOpts)
+    }
+}
 
 function extractTargetFromHatena(urlstr) {
     let target = ""

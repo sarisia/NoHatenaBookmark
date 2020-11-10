@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "No Hatena Bookmark",
-    "version": "1.0",
+    "version": "1.0.0",
     "description": "Skip Hatena Bookmark, get the destination directly.",
     "icons": {
 
@@ -11,10 +11,12 @@
     "permissions": [
         "webRequest",
         "webRequestBlocking",
+        "contextMenus",
         "*://b.hatena.ne.jp/entry*"
     ],
     "background": {
         "scripts": [ "background.js" ],
         "persistent": true
-    }
+    },
+    "browser_action": {}
 }
