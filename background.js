@@ -3,7 +3,7 @@ console.log("background loaded")
 chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
         const target = extractTargetFromHatena(details.url)
-        console.log(target)
+        console.log(`${details.url} -> ${target}`)
         if (target) {
             return {
                 "redirectUrl": target
