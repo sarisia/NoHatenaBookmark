@@ -25,10 +25,10 @@ function extractTargetFromHatena(urlstr) {
         // if url has a query parameter 'url', decode and use them.
         target = decodeURIComponent(urlParam)
     } else {
-        let path = url.pathname.replace(/^\/entry\//, "/")
+        let path = url.pathname.replace(/^\/entry\//, "")
         let scheme = "http"
-        if (path.startsWith("/s/")) {
-            path = path.replace(/^\/s\//, "/")
+        if (path.startsWith("s/")) {
+            path = path.replace(/^s\//, "")
             scheme = "https"
         }
         
