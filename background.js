@@ -56,7 +56,9 @@ function toggleDisableNext(forceValue) {
 
 function updateIcon() {
     console.log(`${isEnabled() ? "enabled" : "disabled"} (disableNext: ${disableNext}, globalEnabled: ${enabled})`)
-    
+    chrome.browserAction.setIcon({
+        path: isEnabled() ? "assets/icon-32.png" : "assets/icon-disabled-32.png"
+    })
 }
 
 function updateContextMenu() {

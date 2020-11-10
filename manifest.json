@@ -4,7 +4,8 @@
     "version": "1.0.0",
     "description": "Skip Hatena Bookmark, get the destination directly.",
     "icons": {
-
+        "48": "assets/icon-48.png",
+        "128": "assets/icon-128.png"
     },
     "homepage_url": "https://github.com/sarisia/NoHatenaBookmark",
 
@@ -18,5 +19,7 @@
         "scripts": [ "background.js" ],
         "persistent": true
     },
-    "browser_action": {}
+    "browser_action": {
+        "default_icon": "assets/icon-32.png"
+    }
 }
