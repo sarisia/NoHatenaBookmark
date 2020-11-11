@@ -117,6 +117,11 @@ function extractTargetFromHatena(urlstr) {
         rawPath = rawPath.slice(2)
         scheme = "https"
     }
+
+    // ignore entry API endpoints or also
+    // e.g. /entry/json, /entry/jsonlite, /entry/button?...
+    const first = rawPath.split("/", 1)[0]
+    if (first.split(".").length <= 1) return ""
     
     return `${scheme}://${rawPath}${url.search}`
 }
@@ -134,7 +139,9 @@ function testExtractTargetFromHatena() {
         ["https://b.hatena.ne.jp/entry/https://example.com/hoge/fuga", "", "path with raw url"],
         ["https://b.hatena.ne.jp/entry/https://example.com/hoge/fuga?query=%3F%26%2B%3F%26%2B", "", "path with raw url, with query"],
         ["https://b.hatena.ne.jp/entry/https%3A%2F%2Fexample.com%2Fhoge%2Ffuga%3Fquery%3D%253F%2526%252B%253F%2526%252B", "", "path with raw url, encoded, with query"],
-        ["https://b.hatena.ne.jp/entry/https%3A%2F%2Fexample.com%2Fhoge%2Ffuga", "", "path with raw url, encoded"]
+        ["https://b.hatena.ne.jp/entry/https%3A%2F%2Fexample.com%2Fhoge%2Ffuga", "", "path with raw url, encoded"],
+        ["https://b.hatena.ne.jp/entry/button/?url=http%3A%2F%2Fhatenacorp.jp%2F&layout=standard-noballoon&lang=ja&mode=popup", "", "button"],
+        ["https://b.hatena.ne.jp/entry/json/http://www.hatena.ne.jp/", "", "json api"]
     ]
 
     cases.forEach((array) => {
