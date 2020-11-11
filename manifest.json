@@ -13,7 +13,7 @@
         "webRequest",
         "webRequestBlocking",
         "contextMenus",
-        "*://b.hatena.ne.jp/entry*"
+        "https://b.hatena.ne.jp/entry*"
     ],
     "background": {
         "scripts": [ "background.js" ],

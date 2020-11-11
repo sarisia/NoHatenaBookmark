@@ -1,45 +1,47 @@
 console.log("background loaded")
 
 let enabled = true
-let disableNext = false
+let tempDisable = false
 let ctxMenu = null
 
 // fired when user try to access hatena bookmark page
 // check url and redirect if necessary.
 chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
-        if (!tick()) return
-
         const target = extractTargetFromHatena(details.url)
         console.log(`${details.url}\n-> ${target}`)
-        if (target) {
+
+        if (target && tick()) {
             return {
                 "redirectUrl": target
             }
         }
     },
     {
-        urls: [ "*://b.hatena.ne.jp/entry*" ]
+        urls: [ "https://b.hatena.ne.jp/entry*" ]
     },
     [ "blocking" ]
 )
 
 // fired when extension icon is clicked
-// toggle disableNext
+// toggle tempDisable
 chrome.browserAction.onClicked.addListener(
-    () => toggleDisableNext()
+    () => {
+        if (!enabled) toggleEnabled()
+        else toggleTempDisable()
+    }
 )
 
 // register context menu
 updateContextMenu()
 
 function isEnabled() {
-    return !disableNext && enabled
+    return !tempDisable && enabled
 }
 
 function tick() {
     const ret = isEnabled()
-    toggleDisableNext(false)
+    toggleTempDisable(false)
     return ret
 }
 
@@ -49,13 +51,13 @@ function toggleEnabled() {
     updateContextMenu()
 }
 
-function toggleDisableNext(forceValue) {
-    disableNext = (forceValue !== undefined) ? forceValue : !disableNext
+function toggleTempDisable(forceValue) {
+    tempDisable = forceValue !== undefined ? forceValue : !tempDisable
     updateIcon()
 }
 
 function updateIcon() {
-    console.log(`${isEnabled() ? "enabled" : "disabled"} (disableNext: ${disableNext}, globalEnabled: ${enabled})`)
+    console.log(`new state: ${isEnabled() ? "enabled" : "disabled"} (tempDisable: ${tempDisable}, globalEnabled: ${enabled})`)
     chrome.browserAction.setIcon({
         path: isEnabled() ? "assets/icon-32.png" : "assets/icon-disabled-32.png"
     })
@@ -76,23 +78,68 @@ function updateContextMenu() {
 }
 
 function extractTargetFromHatena(urlstr) {
-    let target = ""
     const url = new URL(urlstr)
-    const urlParam = url.searchParams.get("url")
+    let rawPath = url.pathname.replace(/^\/entry/, "")
 
-    if (urlParam) {
-        // if url has a query parameter 'url', decode and use them.
-        target = decodeURIComponent(urlParam)
-    } else {
-        let path = url.pathname.replace(/^\/entry\//, "")
-        let scheme = "http"
-        if (path.startsWith("s/")) {
-            path = path.replace(/^s\//, "")
-            scheme = "https"
-        }
-        
-        target = `${scheme}://${path}${url.search}`
+    // if there's no characters left in path, use `url` query parameter
+    if (rawPath === "") {
+        const urlParam = url.searchParams.get("url")
+        // first, try without decoding
+        // e.g. /entry?url=https://example.com/...
+        try {
+            return (new URL(urlParam)).href
+        } catch(e) {}
+
+        // if error occured, try decoded
+        // e.g. /entry?url=https%3A%2F%2Fexample...
+        try {
+            return (new URL(decodeURIComponent(urlParam))).href
+        } catch(e) {}
+
+        return ""
     }
 
-    return target
+    // if there's characters left in path
+    // first we test for 'raw path' pattern
+    // e.g. /entry/https://example.com...
+    //      /entry/http%3A%2F%2F
+    // decode first as we do not need to care about breaking query parameters
+    rawPath = rawPath.slice(1) // trim prefix `/`
+    const tryDecode = decodeURIComponent(rawPath)
+    if (tryDecode.search(/^https?:\/\//) === 0) {
+        return ""
+    }
+
+    // e.g. /entry/example.com/...
+    //      /entry/s/example.com/...
+    let scheme = "http"
+    if (rawPath.startsWith("s/")) {
+        rawPath = rawPath.slice(2)
+        scheme = "https"
+    }
+    
+    return `${scheme}://${rawPath}${url.search}`
+}
+
+// TODO: migrate this to jest test
+function testExtractTargetFromHatena() {
+    const cases = [
+        // input, want, description
+        ["https://b.hatena.ne.jp/entry/example.com/hoge/fuga", "http://example.com/hoge/fuga", "path integrated http"],
+        ["https://b.hatena.ne.jp/entry/s/example.com/hoge/fuga", "https://example.com/hoge/fuga", "path integrated https"],
+        ["https://b.hatena.ne.jp/entry?url=https%3A%2F%2Fexample.com%2Fhoge%2Ffuga", "https://example.com/hoge/fuga", "url query parameter"],
+        ["https://b.hatena.ne.jp/entry?url=https://example.com/hoge/fuga?query=%3F%26%2B%3F%26%2B", "https://example.com/hoge/fuga?query=?&+?&+", "url query parameter with query parameter url"],
+        ["https://b.hatena.ne.jp/entry?url=https%3A%2F%2Fexample.com%2Fhoge%2Ffuga%3Fquery%3D%253F%2526%252B%253F%2526%252B", "https://example.com/hoge/fuga?query=%3F%26%2B%3F%26%2B", "url query parameter with query parameter url, encoded"],
+        ["https://b.hatena.ne.jp/entry/https://example.com/hoge/fuga?query=%3F%26%2B%3F%26%2B", "", "path with raw url, not encoded, with query"],
+        ["https://b.hatena.ne.jp/entry/https://example.com/hoge/fuga", "", "path with raw url"],
+        ["https://b.hatena.ne.jp/entry/https://example.com/hoge/fuga?query=%3F%26%2B%3F%26%2B", "", "path with raw url, with query"],
+        ["https://b.hatena.ne.jp/entry/https%3A%2F%2Fexample.com%2Fhoge%2Ffuga%3Fquery%3D%253F%2526%252B%253F%2526%252B", "", "path with raw url, encoded, with query"],
+        ["https://b.hatena.ne.jp/entry/https%3A%2F%2Fexample.com%2Fhoge%2Ffuga", "", "path with raw url, encoded"]
+    ]
+
+    cases.forEach((array) => {
+        const [input, want, description] = array
+        const got = extractTargetFromHatena(input)
+        console.log(`${got === want ? "OK" : "NG"}: ${description}\n    ${input}\n => ${got} (wants: ${want})`)
+    })
 }
