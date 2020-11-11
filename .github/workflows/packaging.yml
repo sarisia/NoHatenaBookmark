@@ -1,0 +1,18 @@
+name: packaging
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm run package
+      - uses: actions/upload-artifact@v2
+        with:
+          name: extension.zip
+          path: extension.zip
+      - uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}

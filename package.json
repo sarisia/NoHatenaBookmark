@@ -1,0 +1,23 @@
+{
+  "name": "no-hatena-bookmark",
+  "version": "1.0.0",
+  "description": "Skip Hatena Bookmark, get the destination directly.",
+  "main": "background.js",
+  "scripts": {
+    "test": "jest",
+    "package": "zip -r extension.zip manifest.json background.js assets"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sarisia/NoHatenaBookmark.git"
+  },
+  "author": "Sarisia",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sarisia/NoHatenaBookmark/issues"
+  },
+  "homepage": "https://github.com/sarisia/NoHatenaBookmark#readme",
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
