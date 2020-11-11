@@ -5,7 +5,7 @@
   "main": "background.js",
   "scripts": {
     "test": "jest",
-    "package": "zip -r extension.zip manifest.json background.js assets"
+    "package": "rm -f extension.zip && zip -r extension.zip manifest.json background.js assets"
   },
   "repository": {
     "type": "git",
