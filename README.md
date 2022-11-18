@@ -1,3 +1,9 @@
+# Deprecated
+
+最近はブコメ見たくなってきました. 歳かな
+
+---
+
 # No Hatena Bookmark
 
 Skip Hatena Bookmark, get the destination directly.
